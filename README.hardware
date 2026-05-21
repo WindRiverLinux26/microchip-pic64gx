@@ -1,0 +1,85 @@
+		Microchip PIC64GX - Board Support Package
+
+
+Table of Contents
+=================
+1. Supported Boards
+2. Change History
+3. BSP Features
+4. BSP Notes
+
+
+1. Supported Boards
+===================
+
+This BSP supports the following boards:
+
+  + Microchip PIC64GX Curiosity Kit - PIC64GX1000-V/FCS - RISC-V. REV 2.0
+
+
+2. Change History
+=================
+
+  - 2026/10 : Wind River Linux 10.26. Support PIC64GX Curiosity Kit board for both
+			  standard and preempt-rt kernel based on Microchip PIC64GX linux-6.18-mchp 2026.04.
+
+
+3. BSP Features
+===============
+
+3.1 Supported Features
+----------------------
+The following BSP features are validated and supported on boards where
+the corresponding h/w features exist.
+
+  o General Platform
+	+ DMA engine
+
+  o Bus
+	+ 3 x UART (via single micro USB)
+	+ 2 x I2C
+	+ 2 x SPI
+	+ PCIe 2.0 x1
+
+  o Network
+	+ 1 x Gigabit Ethernet: Cadence MACB/GEM ethernet interface
+
+  o Memory & Storage
+	+ DDR: 1 GB DDR4 x 16
+	+ SD card slot
+
+  o Misc Devices
+	+ DMA: SiFive platform DMA (PDMA) engine
+	+ RTC: built-in RTC
+	+ Watchdog
+
+3.2 Unsupported Features
+------------------------
+
+The following features are not supported and not validated.
+
+	x Micro USB 2.0 OTG
+	x MikroBUS
+	x HDMI
+	x User IO Connector
+
+
+4. BSP Notes
+============
+
+4.1 CURIOSITY-PIC64GX1000-KIT
+-----------------------------
+
+4.1.1 Validated Board Info
+--------------------------
+This BSP is only validated in following environment. If you use this BSP
+in a different environment it may possibly have some issues.
+
+	Processor:		PIC64GX1000-V/FCS
+	Board:			PIC64GX Curiosity Kit
+	BootLoader:		U-Boot
+	BootLoader Version:	2025.07-linux4microchip-2026.04 (Apr 29 2026 - 08:52:30 +0000)
+
+Here is the board link:
+  https://www.microchip.com/en-us/development-tool/curiosity-pic64gx1000-kit
+
