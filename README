@@ -1,0 +1,232 @@
+Microchip PIC64GX SoC Curiosity Kit - Board Support Package
+
+1. About this document
+----------------------
+This document describes common and non-hardware specific information.
+Please refer to README.hardware for hardware specific information.
+
+Dependencies
+------------
+This layer depends on the following layers supplied with Wind River Linux:
+	oe-core
+	wrlinux
+	meta-mchp-common
+	meta-mchp-pic64
+
+Maintenance
+-----------
+This layer is maintained by Wind River Systems, Inc.
+Contact <support@windriver.com> or your support representative for more
+information on submitting changes.
+
+Building the microchip-pic64gx layer
+====================================
+This layer should be added to bblayers.conf. This
+is done automatically when using the Wind River configure wrapper.
+
+License
+-------
+Copyright (C) 2026 Wind River Systems, Inc.
+
+Source code included in the tree for individual recipes is under the LICENSE
+stated in the associated recipe (.bb file) unless otherwise stated.
+
+The metadata is under the following license unless otherwise stated.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+
+
+2. BSP Kernel and Distros
+-------------------------
+
+The following table summarizes the valid Wind River Linux distros for this BSP.
+'Y' in each content cell stands for supported; 'N' stands for not supported:
+
+  +--------------+-------------+------------------+-------------------+--------------+
+  | valid/distro |   wrlinux   | wrlinux-graphics | wrlinux-installer | wrlinux-tiny |
+  +--------------+-------------+------------------+-------------------+--------------+
+  |    valid     |      Y      |        N         |         N         |       N      |
+  +--------------+-------------+------------------+-------------------+--------------+
+
+For the supported kernel type for this BSP, please check the TARGET_SUPPORTED_KTYPES
+by running 'bitbake -e virtual/kernel | grep "^TARGET_SUPPORTED_KTYPES="'.
+
+Note: The preempt-rt ktype is available for this BSP/Machine.
+
+3. Board Specific Patches
+-------------------------
+
+To get a list of patches applied to the kernel specific to this BSP along with
+patch descriptions use git-whatchanged on the default kernel. For example:
+
+        %> cd tmp-glibc/work-shared/<bsp_name>/kernel-source
+        %> git whatchanged <kernel_version>/standard/base..<kernel_version>/standard/<bsp_name>
+
+
+4. Boot Instructions
+--------------------
+
+The typical u-boot settings apply to these boards. You will need to use
+setenv, printenv and saveenv, to configure, display and store respectively
+configuration details and kernel command line.
+
+Target specifics are usually set in the "bootargs" variable, and the
+kernel image is set in the "bootfile" variable. Don't forget that if you
+want these values to be available after a power cycle you will need to run
+the saveenv command.
+
+Typically convenience macros exist that will create a complete bootargs
+command line for the kernel based on variables that contain individual
+settings.  Since these macros exist as env variables themselves, they
+may or may not be present depending on who installed and configured
+u-boot for the board.
+
+The baudrate of console device for the board is 115200. The default kernel
+boot file is fitImage, a value of 0x8e000000 was used to load the boot file
+with success by Wind River.
+
+
+4.1 Boot Device
+---------------
+
+For PIC64GX platforms, the boot device is: microSD card.
+
+Please note that, unless otherwise specified, the reference SDK user guide is:
+	"PIC64GX1000 Curiosity Kit User Guide"
+which can be accessed at:
+	https://ww1.microchip.com/downloads/aemDocuments/documents/MPU64/ProductDocuments/SupportingCollateral/PIC64GX_Curiosity_Kit_User_Guide.pdf
+Users can find more detail info like connectors or pin settings in this
+user guide.
+
+The related SDK release is:
+    https://github.com/linux4microchip/meta-mchp/releases
+Users can access this site to find the related SDK release info.
+
+
+4.2 Serial Port Connectivity
+----------------------------
+
+The kit supports three UART connections via the USB type C connector, and
+if the Curiosity Kit is being used with a Linux host PC, udev rules must be
+added to allow Linux to detect the FTDI USB to UART bridge. Without these
+settings, the COM ports may not appear on the Linux host. No additional driver
+is required to be installed.
+
+Please follow the below steps to enable serial ports of the board:
+
+	a. Open the file at `/etc/udev/rules.d/70-microchip.rules`.
+	b. Add the following text, running as sudo:
+
+		# Bind ftdi_sio driver to all input 
+		ACTION=="add", ATTRS{idVendor}=="1514", ATTRS{idProduct}=="200a", \
+		ATTRS{product}=="MCHP-Debug", ATTR{bInterfaceNumber}!="00", \
+		RUN+="/sbin/modprobe ftdi_sio", RUN+="/bin/sh -c 'echo 1514 200a > /sys/bus/usb-serial/drivers/ftdi_sio/new_id'"
+		
+		# Unbind ftdi_sio driver for channel A which should be the JTAG
+		SUBSYSTEM=="usb", DRIVER=="ftdi_sio", ATTRS{idVendor}=="1514", ATTRS{idProduct}=="200a", ATTR{bInterfaceNumber}=="00", \
+		RUN+="/bin/sh -c 'echo $kernel > /sys/bus/usb/drivers/ftdi_sio/unbind'"
+		
+		# Helper (optional)
+		KERNEL=="ttyUSB[0-9]*", SUBSYSTEM=="tty", SUBSYSTEMS=="usb", \
+		ATTRS{interface}=="MCHP-Debug", ATTRS{bInterfaceNumber}=="01", \
+		SYMLINK+="ttyUSB-MCHPDebugSerialB" GROUP="dialout" MODE="0666"
+		
+		KERNEL=="ttyUSB[0-9]*", SUBSYSTEM=="tty", SUBSYSTEMS=="usb", \
+		ATTRS{interface}=="MCHP-Debug", ATTRS{bInterfaceNumber}=="02", \
+		SYMLINK+="ttyUSB-MCHPDebugSerialC" GROUP="dialout" MODE="0666"
+		
+		KERNEL=="ttyUSB[0-9]*", SUBSYSTEM=="tty", SUBSYSTEMS=="usb", \
+		ATTRS{interface}=="MCHP-Debug", ATTRS{bInterfaceNumber}=="03", \
+		SYMLINK+="ttyUSB-MCHPDebugSerialD" GROUP="dialout" MODE="0666"
+
+	c. After adding the new udev rules, run the following command to apply the
+	   changes: `sudo udevadm control --reload`.
+
+Then users can find three new serial ports like:
+	ttyUSBx  : Opens a serial communication terminal between the HSS system on
+			   the board and the host PC.
+	ttyUSBx+1: Opens a serial communication terminal between the Linux system
+			   on the board and host PC.
+	ttyUSBx+2: Other debug usage, no output by defaut.
+once the board has been connected to the Linux host.
+
+Then users can use the ttyUSBx+1 port to communicate with Linux system running
+on the board as normal.
+
+
+4.3 Creating Partitioned Images(WIC)
+------------------------------------
+
+User can use the OpenEmbedded Image Creator, wic, to create the properly
+partitioned image on a SD card. The wic command generates partitioned images
+from existing OpenEmbedded build artifacts.
+
+User can refer to the below URL to get more WIC details:
+	https://docs.yoctoproject.org/singleindex.html#creating-partitioned-images-using-wic
+
+This BSP supports disk image for SD card.
+After build the project, users will get a WIC image and a bmap file under the
+directory tmp-glibc/deploy/images/microchip-pic64gx/, such as:
+	wrlinux-image-<rootfs_type>-microchip-pic64gx.rootfs.wic
+	wrlinux-image-<rootfs_type>-microchip-pic64gx.rootfs.wic.bmap
+
+Then user can write the output image to a SD card as described in following
+section.
+
+4.4 SD Card Boot
+----------------
+
+To boot the board with SD card, user need to copy the WIC image and its bmap
+file to your host PC, and execute the below command:
+  # sudo bmaptool copy <wic-image-name>.bmap /dev/<sd_dev>
+to write the WIC image to the SD card.
+
+After bmaptool write done, plugging in the SD card to the board, then power on
+the board, users can find output on the related serial ports.
+
+
+4.5 NFS Boot
+------------
+
+To boot the board via NFS, users should follow the below steps:
+
+	a) Copy rootfs tarball, like:
+			wrlinux-image-<rootfs_type>-microchip-pic64gx.rootfs.tar.bz2
+	   from the build image path "tmp/deploy/images/microchip-pic64gx" to the
+	   local nfs path, then extract it.
+
+	b) Configure the following environment variables in U-boot:
+		setenv ipaddr <ipaddr>
+		setenv gatewayip <gateway ip>
+		setenv netmask <netmask ip>
+		setenv serverip <server ip>
+		setenv netdev <eth0>
+		setenv rootpath <nfs server exportfs full path>
+		setenv hostname pic64gx
+		setenv bootargs "earlycon=sbi root=/dev/nfs rw nfsroot=$serverip:$rootpath,tcp,v3 ip=$ipaddr:$serverip:$gatewayip:$netmask:$hostname:$netdev:off uio_pdrv_genirq.of_id=generic-uio0"
+		saveenv
+
+	c) Load the kernel image through tftp and boot it:
+		tftpboot ${scriptaddr} fitImage;
+		bootm start ${scriptaddr};
+		bootm loados ${scriptaddr};
+		bootm prep;
+		bootm go;
+
+Then the board will boot and NFS rootfs will be mounted.
